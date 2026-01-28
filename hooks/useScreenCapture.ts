@@ -15,6 +15,9 @@ export function useScreenCapture() {
   useEffect(() => {
     if (videoRef.current && stream) {
       videoRef.current.srcObject = stream;
+      videoRef.current.onloadedmetadata = () => {
+        videoRef.current?.play().catch(e => console.error("Erro ao dar play no vídeo:", e));
+      };
     }
   }, [stream]);
 
@@ -76,9 +79,9 @@ export function useScreenCapture() {
       let userMessage = "Erro ao iniciar captura.";
       
       if (err.name === 'NotAllowedError') {
-        userMessage = "Permissão negada ou política de segurança bloqueando. Certifique-se de clicar em 'Permitir' e que o site tem autorização para 'display-capture'.";
+        userMessage = "Permissão negada. Você precisa autorizar a captura da janela do gráfico para o robô funcionar.";
       } else if (err.message.includes('permissions policy')) {
-        userMessage = "A política de permissões do navegador bloqueou a captura. Verifique as configurações de segurança do site.";
+        userMessage = "A política de permissões do navegador bloqueou a captura. Verifique se o site tem permissão 'display-capture'.";
       } else {
         userMessage = err.message || "Não foi possível acessar a tela.";
       }
@@ -91,29 +94,31 @@ export function useScreenCapture() {
   const captureFrameBase64 = useCallback((): string | null => {
     if (!videoRef.current || !stream || !stream.active) return null;
     
+    // Verifica se o vídeo tem dimensões válidas e está pronto (evita tela preta)
+    const video = videoRef.current;
+    if (video.readyState < 2 || video.videoWidth === 0) return null;
+
     if (!canvasRef.current) {
       canvasRef.current = document.createElement('canvas');
     }
     
-    const video = videoRef.current;
     const canvas = canvasRef.current;
     
-    // 1280x720 é o 'sweet spot' para os modelos de visão detectarem linhas finas
     const width = 1280;
-    const height = video.videoHeight ? (video.videoHeight / video.videoWidth) * width : 720;
+    const height = (video.videoHeight / video.videoWidth) * width;
     
     canvas.width = width;
     canvas.height = height;
     
-    const ctx = canvas.getContext('2d', { alpha: false });
+    const ctx = canvas.getContext('2d', { alpha: false, desynchronized: true });
     if (!ctx) return null;
     
     try {
       ctx.drawImage(video, 0, 0, width, height);
-      const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
       return dataUrl.split(',')[1];
     } catch (e) {
-      console.error("Erro ao desenhar frame no canvas:", e);
+      console.error("Erro ao capturar frame:", e);
       return null;
     }
   }, [stream]);

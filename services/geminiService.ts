@@ -9,7 +9,7 @@ const ANALYSIS_SCHEMA = {
   properties: {
     signal: { type: Type.STRING, description: "BUY ou WAIT" },
     confidence: { type: Type.NUMBER },
-    reasoning: { type: Type.STRING, description: "Explicação técnica detalhada" },
+    reasoning: { type: Type.STRING, description: "Justificativa técnica focada no cruzamento de abertura" },
     momentumCrossing: { type: Type.BOOLEAN, description: "Momentum(5) Turquesa cruzando centro para cima" },
     williamsCrossing: { type: Type.BOOLEAN, description: "Williams(7) Turquesa cruzando -20 para cima" },
     rsiValue: { type: Type.NUMBER },
@@ -29,19 +29,17 @@ export const analyzeChartFrame = async (base64Image: string): Promise<AnalysisRe
       contents: {
         parts: [
           { inlineData: { mimeType: 'image/jpeg', data: base64Image } },
-          { text: `Aja como o Cérebro Analítico do PRISMA IA. Identifique sinais de COMPRA (CALL) para o nascimento da vela M1.
+          { text: `Aja como o Cérebro Analítico do PRISMA IA. Sua missão é prever o SINAL DE COMPRA exatamente para a ABERTURA da vela M1 (00s).
 
-ESTRATÉGIA TURQUESA (FOCO TOTAL):
-1. MOMENTUM (Período 5): Procure a linha TURQUESA. Ela deve estar cruzando a linha central cinza de baixo para cima EXATAMENTE AGORA (nascimento da vela).
-2. WILLIAMS MOMENTUM (Período 7): Procure a linha TURQUESA. Ela deve estar cruzando o nível -20 de baixo para cima simultaneamente.
+ESTRATÉGIA TURQUESA (FOCO EM ABERTURA):
+1. MOMENTUM (5): A linha TURQUESA deve estar apontando para cima e cruzando a linha central EXATAMENTE no nascimento da vela.
+2. WILLIAMS MOMENTUM (7): A linha TURQUESA deve estar rompendo o nível -20 de baixo para cima.
 
-CONDIÇÕES DE SINAL (BUY):
-- Emita BUY somente se as duas linhas TURQUESAS estiverem confirmando força de alta.
-- A vela anterior deve ser verde e ter corpo (fluxo de alta).
-- Não deve haver resistências ou pavios superiores gigantes bloqueando o movimento.
-- NUNCA sugira venda (Sell). Se o gráfico estiver caindo, retorne WAIT.
-
-Sua missão é dar o sinal no exato momento que a nova vela nasce.` }
+INSTRUÇÃO CRÍTICA:
+- Analise a trajetória das linhas turquesas nos últimos segundos da vela anterior.
+- Se a trajetória indica que a abertura da próxima vela será um "tiro" de alta com cruzamento, emita BUY.
+- O sinal deve ser validado para a vela que está abrindo AGORA (00s).
+- NUNCA sugira venda (Sell). Se não houver explosão de alta na abertura, retorne WAIT.` }
         ]
       },
       config: {
@@ -58,7 +56,7 @@ Sua missão é dar o sinal no exato momento que a nova vela nasce.` }
       signal: result.signal as SignalType
     };
   } catch (error) {
-    console.error("Prisma Brain Error:", error);
+    console.error("Prisma Opening Sync Error:", error);
     return fallbackResult();
   }
 };
@@ -66,7 +64,7 @@ Sua missão é dar o sinal no exato momento que a nova vela nasce.` }
 const fallbackResult = (): AnalysisResult => ({
   signal: SignalType.WAIT,
   confidence: 0,
-  reasoning: "Aguardando nascimento da vela M1 e cruzamento turquesa...",
+  reasoning: "Sincronizando com abertura 00s...",
   momentumCrossing: false,
   williamsCrossing: false,
   rsiValue: 0,
