@@ -10,4 +10,7 @@
 [headers]
   for = "/*"
   [headers.values]
-    Permissions-Policy = "display-capture=(self)"
+    Permissions-Policy = "display-capture=(self), camera=(self), microphone=(self)"
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"

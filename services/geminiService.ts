@@ -7,11 +7,11 @@ const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 const ANALYSIS_SCHEMA = {
   type: Type.OBJECT,
   properties: {
-    signal: { type: Type.STRING, description: "BUY ou WAIT" },
+    signal: { type: Type.STRING, description: "BUY, SELL ou WAIT" },
     confidence: { type: Type.NUMBER },
-    reasoning: { type: Type.STRING, description: "Justificativa técnica focada no cruzamento de abertura" },
-    momentumCrossing: { type: Type.BOOLEAN, description: "Momentum(5) Turquesa cruzando centro para cima" },
-    williamsCrossing: { type: Type.BOOLEAN, description: "Williams(7) Turquesa cruzando -20 para cima" },
+    reasoning: { type: Type.STRING, description: "Justificativa técnica detalhada em português" },
+    momentumCrossing: { type: Type.BOOLEAN, description: "Cruzamento do Momentum(5) Turquesa na linha central" },
+    williamsCrossing: { type: Type.BOOLEAN, description: "Cruzamento do Williams(7) Turquesa nos níveis -20 ou -80" },
     rsiValue: { type: Type.NUMBER },
     zoneDetected: { type: Type.STRING },
     condition: { type: Type.STRING },
@@ -29,17 +29,23 @@ export const analyzeChartFrame = async (base64Image: string): Promise<AnalysisRe
       contents: {
         parts: [
           { inlineData: { mimeType: 'image/jpeg', data: base64Image } },
-          { text: `Aja como o Cérebro Analítico do PRISMA IA. Sua missão é prever o SINAL DE COMPRA exatamente para a ABERTURA da vela M1 (00s).
+          { text: `Aja como o Cérebro Analítico do PRISMA IA. Sua missão é prever o SINAL exatamente para a ABERTURA da vela M1 (00s).
 
-ESTRATÉGIA TURQUESA (FOCO EM ABERTURA):
-1. MOMENTUM (5): A linha TURQUESA deve estar apontando para cima e cruzando a linha central EXATAMENTE no nascimento da vela.
-2. WILLIAMS MOMENTUM (7): A linha TURQUESA deve estar rompendo o nível -20 de baixo para cima.
+ESTRATÉGIA TURQUESA (FOCO EM NASCIMENTO/ABERTURA):
 
-INSTRUÇÃO CRÍTICA:
+1. SINAL DE COMPRA (BUY):
+   - MOMENTUM (5): A linha TURQUESA deve cruzar a linha central de BAIXO PARA CIMA exatamente na abertura.
+   - WILLIAMS %R (7): A linha TURQUESA deve romper o nível -20 de BAIXO PARA CIMA.
+
+2. SINAL DE VENDA (SELL):
+   - MOMENTUM (5): A linha TURQUESA deve cruzar a linha central de CIMA PARA BAIXO exatamente na abertura.
+   - WILLIAMS %R (7): A linha TURQUESA deve romper o nível -80 de CIMA PARA BAIXO.
+
+INSTRUÇÃO CRÍTICA DE SINCRONISMO:
 - Analise a trajetória das linhas turquesas nos últimos segundos da vela anterior.
-- Se a trajetória indica que a abertura da próxima vela será um "tiro" de alta com cruzamento, emita BUY.
-- O sinal deve ser validado para a vela que está abrindo AGORA (00s).
-- NUNCA sugira venda (Sell). Se não houver explosão de alta na abertura, retorne WAIT.` }
+- Se as linhas já cruzaram há muito tempo, retorne WAIT e use EXATAMENTE esta justificativa: "A análise técnica indica que o momento de entrada já passou. Tanto o Momentum quanto o Williams %R já estão situados além de suas linhas de gatilho. A estratégia exige um cruzamento no momento da abertura, o que não está ocorrendo agora; as linhas mostram sinais de lateralização ou correção após o movimento recente."
+- O sinal deve ser validado para a vela que nasce no 00s.
+- Se não houver explosão direcional na abertura, retorne WAIT.` }
         ]
       },
       config: {
@@ -56,7 +62,7 @@ INSTRUÇÃO CRÍTICA:
       signal: result.signal as SignalType
     };
   } catch (error) {
-    console.error("Prisma Opening Sync Error:", error);
+    console.error("Prisma Analysis Error:", error);
     return fallbackResult();
   }
 };
