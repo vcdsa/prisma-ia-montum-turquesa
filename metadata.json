@@ -1,0 +1,8 @@
+{
+  "name": "Prisma IA - QuantumVision Pro",
+  "description": "Robô de trading avançado com Visão Computacional e análise de Zonas de Manipulação.",
+  "requestFramePermissions": [
+    "camera",
+    "display-capture"
+  ]
+}
